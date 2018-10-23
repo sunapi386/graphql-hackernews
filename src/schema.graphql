@@ -1,12 +1,15 @@
+# import Link from "./generated/prisma.graphql"
+
 #type User {
 #    id: ID!
 #    name: String!
 #}
-type Link {
-    id: ID!
-    description: String!
-    url: String!
-}
+#type Link {
+#    id: ID!
+#    description: String!
+#    url: String!
+#}
+
 type Mutation {
     updateLink(id: ID!, url: String, description: String): Link
     deleteLink(id: ID!): Link

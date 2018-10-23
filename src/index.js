@@ -1,12 +1,12 @@
 const { GraphQLServer } = require("graphql-yoga");
-
-let links = [{ id: "link-0", url: "jasonsun.org", description: "Author website" }];
-let idCount = links.length;
+const { Prisma } = require('prisma-binding')
 
 const resolvers = {
     Query: {
         info: () => `This is the API of Hackerclonenews`,
-        feed: () => links
+        feed: (root, args, context, info) => {
+            return context.db.query.links({}, info);
+        }
     },
     Link: {
         id: root => root.id,
@@ -14,37 +14,46 @@ const resolvers = {
         url: root => root.url
     },
     Mutation: {
-        updateLink: (root, args) => {
-            const numericalId = args.id.split("-").slice(-1)[0];
-            if (numericalId < idCount) {
-                const link = { id: `link-${idCount++}`, description: args.description, url: args.url };
-                links[numericalId] = link;
-                return link;
-            } else {
-                return null;
-            }
+        updateLink: (root, args, context, info) => {
+            return context.db.updateLink(
+                {
+                    data: {
+                        description: args.description,
+                        url: args.url
+                    }
+                },
+                { where: { id: args.id } }
+            );
         },
-        deleteLink: (root, args) => {
-            const numericalId = args.id.split("-").slice(-1)[0];
-            if (numericalId < idCount) {
-                const link = links[numericalId];
-                links.splice(numericalId, 1);
-                return link;
-            } else {
-                return null;
-            }
+        deleteLink: (root, args, context, info) => {
+            return context.db.deleteLink({ where: { id: args.id } });
         },
-        post: (root, args) => {
-            const link = { id: `link-${idCount++}`, description: args.description, url: args.url };
-            links.push(link);
-            return link;
+        post: (root, args, context, info) => {
+            return context.db.mutation.createLink(
+                {
+                    data: {
+                        url: args.url,
+                        description: args.description
+                    }
+                },
+                info
+            );
         }
     }
 };
 
 const server = new GraphQLServer({
     typeDefs: "./src/schema.graphql",
-    resolvers
+    resolvers,
+    context: req => ({
+        ...req,
+        db: new Prisma({
+            typeDefs: "src/generated/prisma.graphql",
+            endpoint: "https://us1.prisma.sh/jason-sun-96aad0/database/dev",
+            secret: "mysecret123",
+            debug: true
+        })
+    })
 });
 
 server.start(() => console.log(`Server running http://localhost:4000`));
