@@ -1,45 +1,13 @@
 const { GraphQLServer } = require("graphql-yoga");
-const { Prisma } = require('prisma-binding')
+const { Prisma } = require("prisma-binding");
+const Query = require("./resolvers/Query");
+const Mutation = require("./resolvers/Mutation");
+const AuthPayload = require("./resolvers/AuthPayload");
 
 const resolvers = {
-    Query: {
-        info: () => `This is the API of Hackerclonenews`,
-        feed: (root, args, context, info) => {
-            return context.db.query.links({}, info);
-        }
-    },
-    Link: {
-        id: root => root.id,
-        description: root => root.description,
-        url: root => root.url
-    },
-    Mutation: {
-        updateLink: (root, args, context, info) => {
-            return context.db.updateLink(
-                {
-                    data: {
-                        description: args.description,
-                        url: args.url
-                    }
-                },
-                { where: { id: args.id } }
-            );
-        },
-        deleteLink: (root, args, context, info) => {
-            return context.db.deleteLink({ where: { id: args.id } });
-        },
-        post: (root, args, context, info) => {
-            return context.db.mutation.createLink(
-                {
-                    data: {
-                        url: args.url,
-                        description: args.description
-                    }
-                },
-                info
-            );
-        }
-    }
+    Query,
+    AuthPayload,
+    Mutation
 };
 
 const server = new GraphQLServer({
