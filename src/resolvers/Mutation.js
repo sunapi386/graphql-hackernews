@@ -17,6 +17,7 @@ const { APP_SECRET, getUserId } = require("../utils");
 //     return context.db.deleteLink({ where: { id: args.id } });
 // }
 function post(parent, args, context, info) {
+    // we need a user
     const userId = getUserId(context);
     return context.db.mutation.createLink(
         {
@@ -73,8 +74,36 @@ async function login(parent, args, context, info) {
     };
 }
 
+async function vote(parent, args, context, info) {
+    // 1 need a user
+    const userId = getUserId(context);
+
+    // 2 check if we've voted
+    const linkExists = await context.db.exists.Vote({
+        user: { id: userId },
+        link: { id: args.linkId }
+    });
+    if (linkExists) {
+        throw new Error(`Already voted for link: ${args.linkId}`);
+    }
+
+    // 3 create a vote
+    return context.db.mutation.createVote(
+        {
+            data: {
+                user: {
+                    connect: { id: userId }
+                },
+                link: { connect: { id: args.linkId } }
+            }
+        },
+        info
+    );
+}
+
 module.exports = {
     signup,
     login,
-    post
+    post,
+    vote
 };
