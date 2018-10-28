@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "scripts": {
+    "playground": "graphql playground --port 3002",
+    "database": "yarn prisma deploy"
+  },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "graphql-yoga": "^1.16.7",
